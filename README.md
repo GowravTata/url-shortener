@@ -13,6 +13,7 @@ A scalable URL shortening service built with Python that allows users to registe
 * Redis caching
 * Rate limiting
 * URL expiration support
+* Asynchronous event processing with Apache Kafka
 * RESTful APIs
 * OpenAPI/Swagger documentation
 
@@ -24,6 +25,7 @@ A scalable URL shortening service built with Python that allows users to registe
 * FastAPI
 * PostgreSQL
 * Redis
+* Apache Kafka
 * Docker
 * Docker Compose
 
@@ -31,7 +33,9 @@ A scalable URL shortening service built with Python that allows users to registe
 
 ## Architecture
 
-The application uses FastAPI as the core backend service, PostgreSQL for persistence, Redis for caching, and an event-driven analytics pipeline for click tracking and reporting.
+The application uses **FastAPI** as the core backend service, **PostgreSQL** for persistent storage, **Redis** for caching frequently accessed URLs, and **Apache Kafka** for asynchronous event processing.
+
+When a user accesses a shortened URL, the application immediately redirects the request while publishing a click event to Kafka. A separate analytics consumer processes these events and updates click statistics asynchronously, ensuring that analytics processing does not impact redirect performance.
 
 ![System Architecture](images/architecture.png)
 
@@ -49,9 +53,31 @@ Register → Login → Create Short URL
                         v
                  Redirect Occurs
                         |
+                        +---------------------+
+                        |                     |
+                        v                     v
+             Publish Click Event       Return Redirect
+                  to Kafka                Response
+                        |
                         v
-                Analytics Updated
+             Analytics Consumer
+                        |
+                        v
+              Analytics Updated
 ```
+
+---
+
+## Architecture Components
+
+| Component | Responsibility |
+|-----------|----------------|
+| FastAPI | REST API and business logic |
+| PostgreSQL | Persistent storage for users, URLs, and analytics |
+| Redis | Cache frequently accessed URLs to reduce database load |
+| Apache Kafka | Event streaming for click tracking |
+| Analytics Consumer | Consumes Kafka events and updates analytics |
+| Docker Compose | Local orchestration of all services |
 
 ---
 
@@ -184,7 +210,7 @@ GET /aBc123
 Response:
 
 ```http
-302 Found
+HTTP/1.1 302 Found
 Location: https://www.example.com
 ```
 
@@ -214,21 +240,31 @@ url-shortener/
 │   └── architecture.png
 ├── docker-compose.yml
 ├── Dockerfile
+├── requirements.txt
 └── README.md
 ```
 
 ---
 
-
 ## Infrastructure
 
-Infrastructure provisioning and deployment automation are maintained separately.
+Infrastructure provisioning and deployment automation are maintained in a separate Terraform repository.
 
-Terraform Repository:
+**Terraform Repository**
 
 ```text
-https://github.com/GowravTata/url-shotener-infra.git
+https://github.com/GowravTata/url-shortener-infra.git
 ```
+
+The infrastructure repository provisions AWS resources such as:
+
+- EC2 Instance
+- IAM Roles and Instance Profile
+- Security Groups
+- User Data Bootstrapping
+- Automated application deployment from GitHub
+
+---
 
 ---
 
