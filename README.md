@@ -118,6 +118,54 @@ docker ps
 
 ---
 
+---
+
+## Load Sample Data
+
+Once the application is running, you can populate it with sample users, Kafka topics, and shortened URLs using the provided seed script.
+
+> **Note**
+>
+> The seed script must be executed from a machine that:
+>
+> - Has network access to the application (for example, its IP address is allowed by the EC2 Security Group).
+> - Has Python and the `requests` package installed (or allows the script to create its virtual environment automatically).
+> - Can reach the application's API endpoint over HTTP.
+
+### Run the Seed Script
+
+For a local deployment:
+
+```bash
+python seed.py
+```
+
+For a deployment on a remote host:
+
+```bash
+python seed_test_data.py --host <HOSTNAME_OR_IP>
+```
+
+Example:
+
+```bash
+python seed.py --host 54.123.45.67
+```
+
+The seed script automatically:
+
+- Creates the required Kafka topics.
+- Creates a test user (if one does not already exist).
+- Authenticates the user and retrieves a JWT access token.
+- Creates sample shortened URLs for testing.
+
+After the script completes successfully, you can immediately:
+
+- Test URL redirection.
+- Verify Kafka event publishing.
+- View click analytics.
+- Exercise the REST APIs using the generated test data.
+
 ## Access Application
 
 API:

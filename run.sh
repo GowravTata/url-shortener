@@ -41,5 +41,9 @@ sudo docker compose version
 # Run containers
 sudo docker compose up -d
 
+
+echo "=================================================="
+echo "Containers"
+echo "=================================================="
 # Show running containers
 sudo docker ps

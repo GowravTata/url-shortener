@@ -1,12 +1,17 @@
 """
 Seed script for bulk URL creation with venv setup and robust error handling.
 """
-
+import argparse
 import os
 import sys
 import subprocess
 import json
 
+TOPICS = [
+    "analytics-consumer",
+    "archival-consumer",
+    "click-count-consumer"
+]
 
 # ----------------------------
 # Virtual Environment Setup
@@ -44,13 +49,16 @@ def import_requests():
 # ----------------------------
 URL = "http://amazon.com"
 PORT = 8000
-DOMAIN = f"http://localhost:{PORT}"
 
-ENDPOINTS = {
-    "register_user": f"{DOMAIN}/v1/auth/register_user",
-    "login": f"{DOMAIN}/v1/auth/login-json",
-    "bulk_create": f"{DOMAIN}/v1/urls/bulk",
-}
+def configure_endpoints(domain: str):
+    global ENDPOINTS
+
+    ENDPOINTS = {
+        "register_user": f"{domain}/v1/auth/register_user",
+        "login": f"{domain}/v1/auth/login-json",
+        "bulk_create": f"{domain}/v1/urls/bulk",
+        "create_kafka_topic": f"{domain}/v1/kafka/topics/",
+    }
 
 HEADERS = {
     "Content-Type": "application/json",
@@ -115,7 +123,42 @@ def get_token(credentials: dict) -> str:
     return token
 
 
+def create_kafka_topics():
+    """Create the required Kafka topics."""
+    print("Creating Kafka topics...")
+    for topic in TOPICS:
+        try:
+            response = requests.post(
+                url=ENDPOINTS["create_kafka_topic"],
+                params={
+                    "topic": topic,
+                    "partitions": 1,
+                    "replication_factor": 1,
+                },
+                headers=HEADERS,
+                timeout=10,
+            )
+            response.raise_for_status()
+            print(f"✅ Topic created: {topic}")
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ Failed to create topic '{topic}': {e}")
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="Seed the URL Shortener application."
+    )
+
+    parser.add_argument(
+        "--host",
+        default="localhost",
+        help="Hostname or IP address of the URL Shortener service.",
+    )
+
+    return parser.parse_args()
+
 def load_data_into_db(limit: int):
+    # Step 0: Create Kafka Topics
+    create_kafka_topics()
     # Step 1: Find a usable user
     chosen_user = None
     for creds in CREDENTIALS:
@@ -151,6 +194,10 @@ def load_data_into_db(limit: int):
 if __name__ == "__main__":
     python_path = setup_venv()
     requests = import_requests()
+    args = parse_arguments()
+    DOMAIN = f"http://{args.host}:8000"
+
+    configure_endpoints(DOMAIN)
 
     try:
         print(load_data_into_db(limit=25))
