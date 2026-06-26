@@ -219,13 +219,6 @@ url-shortener/
 
 ---
 
-## Running Tests
-
-```bash
-docker compose exec app pytest
-```
-
----
 
 ## Infrastructure
 
@@ -234,7 +227,7 @@ Infrastructure provisioning and deployment automation are maintained separately.
 Terraform Repository:
 
 ```text
-https://git-codecommit.ap-south-2.amazonaws.com/v1/repos/url-shortener-infra
+https://github.com/GowravTata/url-shotener-infra.git
 ```
 
 ---
