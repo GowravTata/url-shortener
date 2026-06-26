@@ -137,19 +137,19 @@ Once the application is running, you can populate it with sample users, Kafka to
 For a local deployment:
 
 ```bash
-python seed.py
+python seed_test_data.py
 ```
 
 For a deployment on a remote host:
 
 ```bash
-python seed_test_data.py --host <HOSTNAME_OR_IP>
+python seed_test_data.py --host <HOSTNAME>
 ```
 
 Example:
 
 ```bash
-python seed.py --host 54.123.45.67
+python seed_test_data.py --host 54.123.45.67
 ```
 
 The seed script automatically:
@@ -171,21 +171,55 @@ After the script completes successfully, you can immediately:
 API:
 
 ```text
-http://localhost:8000
+http://HOSTNAME:8000
 ```
 
 Swagger Documentation:
 
 ```text
-http://localhost:8000/docs
+http://HOSTNAME:8000/docs
 ```
 
 OpenAPI Schema:
 
 ```text
-http://localhost:8000/openapi.json
+http://HOSTNAME:8000/openapi.json
 ```
 
+---
+
+## Kafka UI
+
+Kafka UI provides a web-based interface for monitoring Kafka topics, messages, and consumers.
+
+Access Kafka UI:
+
+```text
+http://HOSTNAME:8080
+```
+
+Using Kafka UI, you can:
+
+- View all Kafka topics.
+- Inspect messages published to each topic.
+- Monitor consumer groups and offsets.
+- Verify that click events are being published successfully.
+- Observe asynchronous event processing in real time.
+
+### Verifying Event Flow
+
+After running the seed script and accessing one or more shortened URLs:
+
+1. Open Kafka UI.
+2. Navigate to the **Topics** page.
+3. Select one of the following topics:
+   - `analytics-consumer`
+   - `archival-consumer`
+   - `click-count-consumer`
+4. Browse the messages published by the application.
+5. Verify that the corresponding consumer groups are processing the events.
+
+This provides a visual way to observe the event-driven architecture powering the analytics pipeline.
 ---
 
 ## Authentication
@@ -241,7 +275,7 @@ Response:
 ```json
 {
   "short_code": "aBc123",
-  "short_url": "http://localhost:8000/aBc123"
+  "short_url": "http://HOSTNAME:8000/aBc123"
 }
 ```
 
