@@ -164,8 +164,7 @@ def get_original_url(
             args=(TOPICS, short_code, analytics_data),
             daemon=True,
         ).start()
-        RedirectResponse(url=result_value, status_code=status.HTTP_302_FOUND)
-        return {"message": "Successful"}
+        return RedirectResponse(url=result_value, status_code=status.HTTP_302_FOUND)
     except (
         RecordNotFoundError,
         URLExpiredError,
