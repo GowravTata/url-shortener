@@ -10,5 +10,5 @@ RATE_LIMITS = {
     "login": {"limit": 1000000000, "window": 60},
     "signup": {"limit": 1000000000, "window": 60},
     "userinfo": {"limit": 1000000000, "window": 60},
-    "restore": {"limit": 1000000000, "window": 60},
+    "restore": {"limit": 1000000000,  "window": 60},
 }
