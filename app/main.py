@@ -18,7 +18,7 @@ from app.core.exceptions import (AliasNotAvailable, ForbiddenUser,
                                  URLDisabledError, URLExpiredError,
                                  UserAlreadyExists)
 from app.core.logging import AppLogger
-from app.routes.admin import admin_router
+from app.routes.admin import admin_router, inspect_router
 from app.routes.analytics import analytics_router
 from app.routes.auth import auth_router
 from app.routes.celery import celery_router
@@ -55,6 +55,7 @@ app.include_router(router=url_router)
 app.include_router(router=celery_router)
 app.include_router(router=kafka_router)
 app.include_router(router=admin_router)
+app.include_router(router=inspect_router)
 
 
 @app.on_event("startup")

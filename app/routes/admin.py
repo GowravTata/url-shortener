@@ -9,10 +9,11 @@ from app.services.admin.reset_service import reset_environment
 from app.services.admin.seed_service import (create_urls, create_users,
                                              generate_clicks)
 
-admin_router = APIRouter(prefix="/v1/admin/", tags=["Inspect"])
+admin_router = APIRouter(prefix="/v1/admin", tags=["Admin"])
+inspect_router = APIRouter(prefix="/v1/inspect", tags=["Inspect"])
 
 
-@admin_router.get("/inspect/summary")
+@inspect_router.get("/summary")
 def inspect_summary(db: Session = Depends(get_db)):
     total_users = db.query(func.count(Users.id)).scalar()
 
@@ -43,7 +44,7 @@ def inspect_summary(db: Session = Depends(get_db)):
     }
 
 
-@admin_router.get("/inspect/users")
+@inspect_router.get("/users")
 def inspect_users(
     limit: int = 20,
     db: Session = Depends(get_db),
@@ -60,7 +61,7 @@ def inspect_users(
     ]
 
 
-@admin_router.get("/inspect/urls")
+@inspect_router.get("/urls")
 def inspect_urls(
     limit: int = 20,
     db: Session = Depends(get_db),
@@ -80,7 +81,7 @@ def inspect_urls(
     ]
 
 
-@admin_router.get("/inspect/top-clicked")
+@inspect_router.get("/top-clicked")
 def top_clicked(
     limit: int = 10,
     db: Session = Depends(get_db),
