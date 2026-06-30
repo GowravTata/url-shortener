@@ -18,6 +18,7 @@ from app.core.exceptions import (AliasNotAvailable, ForbiddenUser,
                                  URLDisabledError, URLExpiredError,
                                  UserAlreadyExists)
 from app.core.logging import AppLogger
+from app.routes.admin import admin_router
 from app.routes.analytics import analytics_router
 from app.routes.auth import auth_router
 from app.routes.celery import celery_router
@@ -25,7 +26,6 @@ from app.routes.health import health_check_router
 from app.routes.kakfa import kafka_router
 from app.routes.redirect import redirect_router
 from app.routes.url import url_router
-from app.routes.admin import admin_router
 from app.utils.request_context import RequestContextMiddleware
 from scripts.pre_checks import init_db
 

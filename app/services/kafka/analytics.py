@@ -1,9 +1,9 @@
+from app.core.config import KAFKA_LOGGER
 from app.core.logging import AppLogger
 from app.models.events import ClickEvents
 from app.utils.analytics_repository import AnalyticsRepository
 from app.utils.serializers import normalize_data
 from app.utils.user_geo_details import get_device, get_geo_data
-from app.core.config import KAFKA_LOGGER
 
 logger = AppLogger(KAFKA_LOGGER).get_logger()
 

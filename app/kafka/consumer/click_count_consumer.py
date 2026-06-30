@@ -1,6 +1,9 @@
 import json
+
 from confluent_kafka import Consumer
-from app.core.config import CLICK_COUNT_CONSUMER, KAFKA_CONFIG, KAFKA_LOGGER, KAFKA_OFFSET
+
+from app.core.config import (CLICK_COUNT_CONSUMER, KAFKA_CONFIG, KAFKA_LOGGER,
+                             KAFKA_OFFSET)
 from app.core.logging import AppLogger
 from app.utils.serializers import formatted_time
 

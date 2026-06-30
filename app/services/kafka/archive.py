@@ -1,8 +1,8 @@
 import json
 
+from app.core.config import KAFKA_LOGGER
 from app.core.logging import AppLogger
 from app.utils.archival_repository import ArchiveRepository
-from app.core.config import KAFKA_LOGGER
 
 logger = AppLogger(KAFKA_LOGGER).get_logger()
 

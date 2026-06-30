@@ -1,8 +1,9 @@
-from app.core.logging import AppLogger
-from app.core.db import get_db
-from app.models.url import URLModel
-from app.core.config import KAFKA_LOGGER
 from datetime import datetime
+
+from app.core.config import KAFKA_LOGGER
+from app.core.db import get_db
+from app.core.logging import AppLogger
+from app.models.url import URLModel
 
 logger=AppLogger(KAFKA_LOGGER).get_logger()
 

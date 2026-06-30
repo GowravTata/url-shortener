@@ -8,70 +8,17 @@ from app.core.db import get_db
 from app.models.url import URLModel
 from app.models.user import Users
 
-# ======================================================================
-# Configuration
-# ======================================================================
-
 fake = Faker()
 
 DOMAIN = os.getenv("API_BASE_URL", "http://localhost:8000")
 
 REGISTER_USER_API = f"{DOMAIN}/v1/auth/register_user"
 LOGIN_USER_API = f"{DOMAIN}/v1/auth/login-json"
-CREATE_URL_API = f"{DOMAIN}/v1/urls/"  # Change if different
+CREATE_URL_API = f"{DOMAIN}/v1/urls/"
 
 PASSWORD = "secretpassword"
-TOTAL_USERS = 100
-TOTAL_URLS = 1000
 
-# ======================================================================
-# Helpers
-# ======================================================================
-
-
-def generate_emails():
-    emails = set()
-
-    while len(emails) < TOTAL_USERS:
-        emails.add(
-            f"{fake.first_name().lower()}.{fake.last_name().lower()}@fastapi.com"
-        )
-
-    return list(emails)
-
-
-def create_users():
-    print("=" * 70)
-    print("Creating Users")
-    print("=" * 70)
-
-    for email in generate_emails():
-        payload = {
-            "email": email,
-            "password": PASSWORD,
-        }
-
-        response = requests.post(
-            REGISTER_USER_API,
-            json=payload,
-            timeout=10,
-        )
-
-        if response.status_code == 200:
-            print(f"Created: {email}")
-        else:
-            print(f"Skipped: {email}")
-            print(response.text)
-
-
-def get_users():
-    db = next(get_db())
-    users = db.query(Users).all()
-    return [user.email for user in users]
-
-
-
-all_urls = [
+ALL_URLS = [
     "https://youtube.com",
     "https://facebook.com",
     "https://instagram.com",
@@ -1075,112 +1022,96 @@ all_urls = [
     "http://facebook.com"
 ]
 
-def login(email):
-    payload = {
-        "email": email,
-        "password": PASSWORD,
-    }
 
+def generate_emails(total_users: int):
+    emails = set()
+
+    while len(emails) < total_users:
+        emails.add(
+            f"{fake.first_name().lower()}."
+            f"{fake.last_name().lower()}@fastapi.com"
+        )
+
+    return list(emails)
+
+
+def create_users(total_users: int):
+    created = 0
+
+    for email in generate_emails(total_users):
+        response = requests.post(
+            REGISTER_USER_API,
+            json={
+                "email": email,
+                "password": PASSWORD,
+            },
+            timeout=10,
+        )
+
+        if response.status_code == 200:
+            created += 1
+
+    return created
+
+
+def get_users():
+    db = next(get_db())
+    return [user.email for user in db.query(Users).all()]
+
+
+def login(email: str):
     response = requests.post(
         LOGIN_USER_API,
-        json=payload,
+        json={
+            "email": email,
+            "password": PASSWORD,
+        },
         timeout=10,
     )
-
     if response.status_code != 200:
-        print(f"Login failed for {email}")
-        print(response.text)
         return None
+    return response.json()["access_token"]
 
-    data = response.json()
-    # Adjust this if your response format is different
-    return data["access_token"]
-
-
-# ======================================================================
-# Main
-# ======================================================================
-
-# Uncomment once if users don't exist
-create_users()
-
-users = get_users()
-urls = all_urls
-
-if not users:
-    raise Exception("No users found.")
-
-if not urls:
-    raise Exception("No URLs found.")
-
-print(f"Loaded {len(users)} users.")
-print(f"Loaded {len(urls)} URLs.")
-
-success = 0
-
-for i in range(TOTAL_URLS):
-    email = random.choice(users)
-    original_url = random.choice(urls)
-    token = login(email)
-    if token is None:
-        continue
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
-    payload = {
-        "original_url": original_url,
-    }
-    response = requests.post(
-        CREATE_URL_API,
-        headers=headers,
-        json=payload,
-        timeout=10,
-    )
-
-    if response.status_code == 200:
-        success += 1
-        print(f"[{success}/{TOTAL_URLS}] " f"{email} -> {original_url}")
-    else:
-        print(f"Failed ({response.status_code}) " f"for {email}")
-        print(response.text)
-
-print("=" * 70)
-print(f"Successfully created {success} URLs.")
-print("=" * 70)
-
-
-TOTAL_CLICKS = 4000
-
+def create_urls(total_urls: int):
+    users = get_users()
+    success = 0
+    for _ in range(total_urls):
+        email = random.choice(users)
+        original_url = random.choice(ALL_URLS)
+        token = login(email)
+        if not token:
+            continue
+        response = requests.post(
+            CREATE_URL_API,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "original_url": original_url,
+            },
+            timeout=10,
+        )
+        if response.status_code == 200:
+            success += 1
+    return success
 
 def get_short_urls():
     db = next(get_db())
-    records = db.query(URLModel).all()
-    return [record.short_code for record in records]
+    return [url.short_code for url in db.query(URLModel).all()]
 
 
-short_urls = get_short_urls()
+def generate_clicks(total_clicks: int):
+    short_urls = get_short_urls()
+    success = 0
+    for _ in range(total_clicks):
+        short_code = random.choice(short_urls)
+        response = requests.get(
+            f"{DOMAIN}/{short_code}",
+            allow_redirects=False,
+            timeout=10,
+        )
+        if response.status_code in (200, 301, 302, 307, 308):
+            success += 1
 
-if not short_urls:
-    raise Exception("No URLs found.")
-
-success = 0
-
-for i in range(TOTAL_CLICKS):
-
-    short_code = random.choice(short_urls)
-
-    response = requests.get(
-        f"{DOMAIN}/{short_code}",
-        allow_redirects=False,
-        timeout=10,
-    )
-
-    if response.status_code in (200, 301, 302, 307, 308):
-        success += 1
-        print(f"[{success}/{TOTAL_CLICKS}] {short_code}")
-    else:
-        print(f"Failed ({response.status_code}) -> {short_code}")
-
-print(f"\nGenerated {success} clicks.")
+    return success
