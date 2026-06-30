@@ -25,6 +25,7 @@ from app.routes.health import health_check_router
 from app.routes.kakfa import kafka_router
 from app.routes.redirect import redirect_router
 from app.routes.url import url_router
+from app.routes.admin import admin_router
 from app.utils.request_context import RequestContextMiddleware
 from scripts.pre_checks import init_db
 
@@ -53,6 +54,7 @@ app.include_router(router=auth_router)
 app.include_router(router=url_router)
 app.include_router(router=celery_router)
 app.include_router(router=kafka_router)
+app.include_router(router=admin_router)
 
 
 @app.on_event("startup")

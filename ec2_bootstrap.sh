@@ -76,12 +76,20 @@ echo "Starting containers..."
 sudo docker compose up -d
 
 
+until curl -fs http://localhost:8000/health; do
+    sleep 2
+done
+
+docker compose exec api python -m scripts.seed_data
+
 echo "=================================================="
 echo "Containers"
 echo "=================================================="
 sudo docker ps
 
 sudo usermod -aG docker ubuntu
+
+
 
 echo "=================================================="
 echo "Bootstrap completed successfully"

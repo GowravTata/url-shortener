@@ -18,7 +18,7 @@ DOMAIN = os.getenv("API_BASE_URL", "http://localhost:8000")
 REGISTER_USER_API = f"{DOMAIN}/v1/auth/register_user"
 LOGIN_USER_API = f"{DOMAIN}/v1/auth/login-json"
 CREATE_URL_API = f"{DOMAIN}/v1/urls/"  # Change if different
-URL_TO_BE_INSERTED = 10
+
 PASSWORD = "secretpassword"
 TOTAL_USERS = 100
 TOTAL_URLS = 1000
@@ -1117,7 +1117,7 @@ print(f"Loaded {len(urls)} URLs.")
 
 success = 0
 
-for i in range(URL_TO_BE_INSERTED):
+for i in range(TOTAL_URLS):
     email = random.choice(users)
     original_url = random.choice(urls)
     token = login(email)
@@ -1150,7 +1150,7 @@ print(f"Successfully created {success} URLs.")
 print("=" * 70)
 
 
-TOTAL_CLICKS = 200
+TOTAL_CLICKS = 4000
 
 
 def get_short_urls():
