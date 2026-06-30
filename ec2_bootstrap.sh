@@ -1,48 +1,58 @@
-#!/bin/bash
+# Add Docker's official GPG key
+sudo apt update
+sudo apt install -y ca-certificates curl
 
-exec > >(tee /var/log/ec2-bootstrap.log)
-exec 2>&1
+sudo install -m 0755 -d /etc/apt/keyrings
 
-set -ex
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    -o /etc/apt/keyrings/docker.asc
 
-REPO_DIR="$(pwd)"
+sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-echo "=================================================="
-echo "Current Directory"
-echo "=================================================="
-pwd
 
 echo "=================================================="
-echo "Repository Contents"
+echo "Add Docker repository"
 echo "=================================================="
-ls -la
+sudo tee /etc/apt/sources.list.d/docker.sources > /dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
 
 echo "=================================================="
-echo "Installing Docker"
+echo "Refresh package cache"
 echo "=================================================="
 
-curl -fsSL https://get.docker.com | sh
+sudo apt update
+
+
+echo "=================================================="
+echo "Install Docker"
+echo "=================================================="
+
+sudo apt install -y \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin
+
+echo "=================================================="
+echo "Enable and start Docker"
+echo "=================================================="
 
 sudo systemctl enable docker
 sudo systemctl start docker
 
 echo "=================================================="
-echo "Docker Version"
+echo " Verify installation"
 echo "=================================================="
 
-docker --version
-docker compose version
-
-echo "=================================================="
-echo "Searching for compose files"
-echo "=================================================="
-
-find "$REPO_DIR" -maxdepth 3 \( \
-    -name "docker-compose.yml" -o \
-    -name "docker-compose.yaml" -o \
-    -name "compose.yml" -o \
-    -name "compose.yaml" \
-\)
+sudo docker --version
+sudo docker compose version
 
 echo "=================================================="
 echo "Current Branch"
@@ -51,22 +61,27 @@ echo "=================================================="
 git branch
 
 echo "=================================================="
-echo "Making run.sh executable"
-echo "=================================================="
-
-chmod +x "$REPO_DIR/run.sh"
-
-echo "=================================================="
 echo "Compose Validation"
 echo "=================================================="
 
 docker compose config
 
-echo "=================================================="
-echo "Executing run.sh"
-echo "=================================================="
+echo "Validating Docker Compose..."
+sudo docker compose config
 
-./run.sh
+echo "Pulling latest images..."
+sudo docker compose pull
+
+echo "Starting containers..."
+sudo docker compose up -d
+
+
+echo "=================================================="
+echo "Containers"
+echo "=================================================="
+sudo docker ps
+
+sudo usermod -aG docker ubuntu
 
 echo "=================================================="
 echo "Bootstrap completed successfully"
