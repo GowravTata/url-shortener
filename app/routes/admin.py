@@ -9,10 +9,10 @@ from app.services.admin.reset_service import reset_environment
 from app.services.admin.seed_service import (create_urls, create_users,
                                              generate_clicks)
 
-admin_router = APIRouter(prefix="/v1/admin/inspect", tags=["Inspect"])
+admin_router = APIRouter(prefix="/v1/admin/", tags=["Inspect"])
 
 
-@admin_router.get("/summary")
+@admin_router.get("/inspect/summary")
 def inspect_summary(db: Session = Depends(get_db)):
     total_users = db.query(func.count(Users.id)).scalar()
 
@@ -43,7 +43,7 @@ def inspect_summary(db: Session = Depends(get_db)):
     }
 
 
-@admin_router.get("/users")
+@admin_router.get("/inspect/users")
 def inspect_users(
     limit: int = 20,
     db: Session = Depends(get_db),
@@ -60,7 +60,7 @@ def inspect_users(
     ]
 
 
-@admin_router.get("/urls")
+@admin_router.get("/inspect/urls")
 def inspect_urls(
     limit: int = 20,
     db: Session = Depends(get_db),
@@ -80,7 +80,7 @@ def inspect_urls(
     ]
 
 
-@admin_router.get("/top-clicked")
+@admin_router.get("/inspect/top-clicked")
 def top_clicked(
     limit: int = 10,
     db: Session = Depends(get_db),
@@ -109,7 +109,7 @@ def reset(db: Session = Depends(get_db)):
 
 
 
-@admin_router.post("/users")
+@admin_router.post("/seed/users")
 def seed_users(
     count: int = Query(
         default=100,
@@ -126,7 +126,7 @@ def seed_users(
     }
 
 
-@admin_router.post("/urls")
+@admin_router.post("/seed/urls")
 def seed_urls(
     count: int = Query(
         default=1000,
@@ -143,7 +143,7 @@ def seed_urls(
     }
 
 
-@admin_router.post("/clicks")
+@admin_router.post("/seed/clicks")
 def seed_clicks(
     count: int = Query(
         default=1000,
@@ -160,7 +160,7 @@ def seed_clicks(
     }
 
 
-@admin_router.post("/all")
+@admin_router.post("/seed/all")
 def seed_all(
     users: int = Query(
         default=100,
