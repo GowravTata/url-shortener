@@ -83,10 +83,6 @@ def get_original_url(
             ):
                 CacheService.invalidate_redirect_cache(short_code=short_code)
             # Click metrics are buffered in Redis and flushed later by worker jobs.
-            RedirectResponse(
-                url=data["original_url"],
-                status_code=status.HTTP_302_FOUND,
-            )
 
             latency_ms = (time.perf_counter() - start) * 1000
             # Build the data for Analytics
@@ -102,7 +98,10 @@ def get_original_url(
                 args=(TOPICS, short_code, analytics_data),
                 daemon=True,
             ).start()
-            return {"message": "Successful"}
+            return RedirectResponse(
+                url=data["original_url"],
+                status_code=status.HTTP_302_FOUND,
+            )
         logger.info(f"Cache miss for key: {short_code}. Checking database...")
         record: Any = get_url_by_short_code(db=db, short_code=short_code)
         validate(
