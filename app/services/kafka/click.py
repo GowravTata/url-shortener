@@ -20,7 +20,7 @@ class ClickCountService:
                 if record:
                     record.click_count += 1
                     record.last_accessed = datetime.fromisoformat(last_accessed)
-            db.commit()
+                db.commit()
         except Exception as e:
             logger.exception(f"Error processing : {e}")
         
