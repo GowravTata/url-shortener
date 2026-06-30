@@ -54,8 +54,8 @@ app.include_router(router=auth_router)
 app.include_router(router=url_router)
 app.include_router(router=celery_router)
 app.include_router(router=kafka_router)
-app.include_router(router=admin_router)
 app.include_router(router=inspect_router)
+app.include_router(router=admin_router)
 
 
 @app.on_event("startup")

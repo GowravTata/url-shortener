@@ -6,8 +6,11 @@ from app.core.db import get_db
 from app.models.url import URLModel
 from app.models.user import Users
 from app.services.admin.reset_service import reset_environment
-from app.services.admin.seed_service import (create_urls, create_users,
-                                             generate_clicks)
+from app.services.admin.seed_service import (
+    create_urls,
+    create_users,
+    generate_clicks,
+)
 
 admin_router = APIRouter(prefix="/v1/admin", tags=["Admin"])
 inspect_router = APIRouter(prefix="/v1/inspect", tags=["Inspect"])
@@ -50,7 +53,6 @@ def inspect_users(
     db: Session = Depends(get_db),
 ):
     users = db.query(Users).limit(limit).all()
-
     return [
         {
             "id": user.id,
@@ -67,7 +69,6 @@ def inspect_urls(
     db: Session = Depends(get_db),
 ):
     urls = db.query(URLModel).limit(limit).all()
-
     return [
         {
             "short_code": url.short_code,
@@ -108,8 +109,6 @@ def reset(db: Session = Depends(get_db)):
     return reset_environment(db)
 
 
-
-
 @admin_router.post("/seed/users")
 def seed_users(
     count: int = Query(
@@ -120,7 +119,6 @@ def seed_users(
     )
 ):
     created = create_users(count)
-
     return {
         "requested": count,
         "created": created,
@@ -137,7 +135,6 @@ def seed_urls(
     )
 ):
     created = create_urls(count)
-
     return {
         "requested": count,
         "created": created,
@@ -154,7 +151,6 @@ def seed_clicks(
     )
 ):
     generated = generate_clicks(count)
-
     return {
         "requested": count,
         "generated": generated,
@@ -185,7 +181,6 @@ def seed_all(
     created_users = create_users(users)
     created_urls = create_urls(urls)
     generated_clicks = generate_clicks(clicks)
-
     return {
         "users_created": created_users,
         "urls_created": created_urls,
