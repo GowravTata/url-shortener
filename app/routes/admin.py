@@ -6,11 +6,8 @@ from app.core.db import get_db
 from app.models.url import URLModel
 from app.models.user import Users
 from app.services.admin.reset_service import reset_environment
-from app.services.admin.seed_service import (
-    create_urls,
-    create_users,
-    generate_clicks,
-)
+from app.services.admin.seed_service import (create_urls, create_users,
+                                             generate_clicks)
 
 admin_router = APIRouter(prefix="/v1/admin", tags=["Admin"])
 inspect_router = APIRouter(prefix="/v1/inspect", tags=["Inspect"])

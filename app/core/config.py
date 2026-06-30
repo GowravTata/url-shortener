@@ -99,7 +99,7 @@ ARCHIVAL_CONSUMER = "archival-consumer"
 CLICK_COUNT_CONSUMER = "click-count-consumer"
 
 # Static IP
-MY_IP = ["167.103.76.79", "117.213.222.249", "136.226.253.99", "81.22.162.228","167.103.26.248"]
+MY_IP = ["167.103.76.80","167.103.26.249"]
 GEO_IP_TTL = 86400
 GEO_DETAILS_API = "https://ipinfo.io/{ip}/json"
 

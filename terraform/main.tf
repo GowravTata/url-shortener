@@ -60,7 +60,7 @@ resource "aws_security_group" "app_sg" {
 
 resource "aws_key_pair" "ec2_key" {
   key_name   = "my-ec2-key"
-  public_key = file("my-key.pub")
+  public_key = file("${path.module}/keys/my-ec2-key.pub")
 }
 
 resource "aws_instance" "app_server" {

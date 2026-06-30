@@ -1,116 +1,1196 @@
 # URL Shortener Service
 
-A scalable URL shortening service built with Python that allows users to register, create shortened URLs, redirect users to original destinations, and track usage analytics.
+A production-inspired URL Shortener built using **FastAPI**, **PostgreSQL**, **Redis**, **Apache Kafka**, **Docker**, and **Terraform**.
+
+The project demonstrates modern backend engineering concepts including authentication, caching, asynchronous event processing, infrastructure provisioning, rate limiting, analytics, and containerized deployment on AWS.
 
 ---
 
-## Features
+# Features
 
-* User registration and authentication
-* URL shortening
-* URL redirection
-* Click analytics
-* Redis caching
-* Rate limiting
-* URL expiration support
-* Asynchronous event processing with Apache Kafka
-* RESTful APIs
-* OpenAPI/Swagger documentation
-
----
-
-## Tech Stack
-
-* Python
-* FastAPI
-* PostgreSQL
-* Redis
-* Apache Kafka
-* Docker
-* Docker Compose
+- User Registration & Authentication (JWT)
+- URL Shortening
+- URL Redirection
+- Click Analytics
+- Redis Caching
+- Rate Limiting
+- URL Expiration Support
+- Apache Kafka Event Streaming
+- Asynchronous Analytics Processing
+- Dockerized Deployment
+- Infrastructure Provisioning using Terraform
+- Swagger / OpenAPI Documentation
+- Admin Seed APIs for Demo Data
 
 ---
 
-## Architecture
+# Technology Stack
 
-The application uses **FastAPI** as the core backend service, **PostgreSQL** for persistent storage, **Redis** for caching frequently accessed URLs, and **Apache Kafka** for asynchronous event processing.
+| Layer | Technology |
+|---------|------------|
+| Language | Python |
+| Framework | FastAPI |
+| Database | PostgreSQL |
+| Cache | Redis |
+| Event Streaming | Apache Kafka |
+| Containerization | Docker |
+| Orchestration | Docker Compose |
+| Infrastructure | Terraform |
+| Cloud | AWS EC2 |
 
-When a user accesses a shortened URL, the application immediately redirects the request while publishing a click event to Kafka. A separate analytics consumer processes these events and updates click statistics asynchronously, ensuring that analytics processing does not impact redirect performance.
+---
 
-![System Architecture](images/architecture.png)
+# Architecture
 
-### User Flow
+The application follows an event-driven architecture.
+
+- FastAPI serves client requests.
+- PostgreSQL stores users, URLs, and analytics.
+- Redis caches frequently accessed URLs.
+- Kafka publishes click events asynchronously.
+- Analytics consumers process events without impacting redirect latency.
+
+![Architecture](images/architecture.png)
+
+---
+
+# Request Flow
+
+```
+
+Register User
+↓
+
+Login
+↓
+
+Create Short URL
+↓
+
+Store in PostgreSQL
+↓
+
+Cache in Redis
+↓
+
+Share URL
+↓
+
+User Clicks URL
+↓
+
+Lookup Redis
+
+↓
+
+Cache Hit ----------------------→ Redirect
+
+↓
+
+Cache Miss
+↓
+
+Read PostgreSQL
+↓
+
+Update Redis
+↓
+
+Redirect User
+↓
+
+Publish Click Event
+
+↓
+
+Kafka
+
+↓
+
+Analytics Consumer
+
+↓
+
+Update Click Statistics
+
+```
+
+---
+
+# Repository Structure
+
+```
+
+url-shortener/
+│
+├── app/
+│   ├── api/
+│   ├── core/
+│   ├── models/
+│   ├── routers/
+│   ├── services/
+│   ├── utils/
+│   └── ...
+│
+├── terraform/
+│
+├── images/
+│
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+├── README.md
+│
+└── .env
+
+```
+
+---
+
+# Prerequisites
+
+Install the following tools before starting.
+
+| Tool | Purpose |
+|-------|----------|
+| Git | Clone repository |
+| Docker | Run containers |
+| Docker Compose | Service orchestration |
+| Terraform | Infrastructure provisioning |
+| AWS Account | Deploy infrastructure |
+
+Verify installations
+
+```bash
+git --version
+
+docker --version
+
+docker compose version
+
+terraform version
+```
+
+---
+
+# Quick Start
+
+Follow these steps to provision the infrastructure and deploy the application.
+
+## Before You Begin
+
+- Install the following tools:
+  - Git
+  - Terraform
+  - Docker (for local development)
+- Create an AWS account with the required permissions.
+- Generate an SSH key pair:
+
+```bash
+ssh-keygen -t rsa -b 4096 -f my-ec2-key
+```
+
+- Copy the generated public key (`my-ec2-key.pub`) to:
 
 ```text
-Register → Login → Create Short URL
-                        |
-                        v
-                  Share URL
-                        |
-                        v
-                 User Accesses URL
-                        |
-                        v
-                 Redirect Occurs
-                        |
-                        +---------------------+
-                        |                     |
-                        v                     v
-             Publish Click Event       Return Redirect
-                  to Kafka                Response
-                        |
-                        v
-             Analytics Consumer
-                        |
-                        v
-              Analytics Updated
+terraform/my-ec2-key.pub
+```
+
+- Configure your public IP address for SSH access by either:
+  - Updating the `my_ip` variable in `terraform/variables.tf`, **or**
+  - Passing it during deployment:
+
+```bash
+terraform apply -var="my_ip=<YOUR_PUBLIC_IP>" 
 ```
 
 ---
 
-## Architecture Components
+## Deploy
 
-| Component | Responsibility |
-|-----------|----------------|
-| FastAPI | REST API and business logic |
-| PostgreSQL | Persistent storage for users, URLs, and analytics |
-| Redis | Cache frequently accessed URLs to reduce database load |
-| Apache Kafka | Event streaming for click tracking |
-| Analytics Consumer | Consumes Kafka events and updates analytics |
-| Docker Compose | Local orchestration of all services |
+```bash
+git clone https://github.com/GowravTata/url-shortener.git
+
+cd url-shortener/terraform
+
+terraform init
+
+terraform plan
+
+terraform apply
+```
+
+Terraform automatically:
+
+- Provisions the AWS infrastructure.
+- Configures the EC2 instance.
+- Deploys the application using the EC2 bootstrap script.
+- Starts all required Docker containers.
+
+Once the deployment is complete, Terraform outputs the EC2 Public IP.
 
 ---
 
-## Prerequisites
+## Verify Deployment
 
-* Docker
-* Docker Compose
+Open Swagger UI:
 
-Verify installation:
+```text
+http://<EC2_PUBLIC_IP>:8000/docs
+```
 
-```bash
-docker --version
-docker compose version
+Open Kafka UI:
+
+```text
+http://<EC2_PUBLIC_IP>:8080
 ```
 
 ---
 
-## Getting Started
+## Load Demo Data
 
-### Clone Repository
+Populate the application with sample users, URLs, and click events.
 
 ```bash
-git clone <repository-url>
+curl -X POST \
+"http://<EC2_PUBLIC_IP>:8000/v1/admin/seed/all"
+```
+
+The application is now ready for testing.
+
+
+# AWS Permissions
+
+For development purposes, the IAM user executing Terraform should have:
+
+```
+
+AmazonEC2FullAccess
+
+```
+
+This keeps the setup simple.
+
+For production environments, replace this with a least-privilege IAM policy.
+
+---
+
+
+The application deployment is covered in the next section.
+# Application Deployment
+
+After connecting to the EC2 instance, clone the application repository.
+
+```bash
+git clone https://github.com/<your-username>/url-shortener.git
+
 cd url-shortener
 ```
 
-### Start Application
+---
+# Verify Deployment
+
+Terraform deploys the application automatically using the EC2 bootstrap script.
+
+After `terraform apply` completes, wait a few minutes for the bootstrap process to finish.
+
+Verify that the application is available by opening:
+
+| Service | URL |
+|----------|-----|
+| Application | http://<EC2_PUBLIC_IP>:8000 |
+| Swagger UI | http://<EC2_PUBLIC_IP>:8000/docs |
+| OpenAPI | http://<EC2_PUBLIC_IP>:8000/openapi.json |
+| Kafka UI | http://<EC2_PUBLIC_IP>:8080 |
+| PgAdmin (if enabled) | http://<EC2_PUBLIC_IP>:5050 |
+
+If these pages load successfully, the deployment has completed successfully.
+
+## Verify Running Containers
+
+If you suspect the deployment failed, connect to the EC2 instance and verify that the containers are running.
+
+List all running containers.
+
+```bash
+docker ps
+```
+
+Expected containers include:
+
+```text
+url-shortener-api
+postgres
+redis
+kafka
+kafka-ui
+analytics-consumer
+```
+
+If a container is not running, inspect the logs.
+
+```bash
+docker compose logs
+```
+
+To continuously monitor the logs:
+
+```bash
+docker compose logs -f
+```
+
+
+---
+
+# Verify Application
+
+Open Swagger UI.
+
+```text
+http://<EC2_PUBLIC_IP>:8000/docs
+```
+
+OpenAPI Specification
+
+```text
+http://<EC2_PUBLIC_IP>:8000/openapi.json
+```
+
+Application Root
+
+```text
+http://<EC2_PUBLIC_IP>:8000
+```
+
+If Swagger loads successfully, the application is running correctly.
+
+---
+
+# Seed Demo Data
+
+The project includes Admin Seed APIs for generating realistic demo data.
+
+These APIs create:
+
+- Test Users
+- Shortened URLs
+- Click Events
+
+The APIs are intentionally separated so that each step can be executed independently.
+
+---
+
+## Create Users
+
+```http
+POST /v1/admin/seed/users
+```
+
+Example
+
+```bash
+curl -X POST \
+"http://<EC2_PUBLIC_IP>:8000/v1/admin/seed/users?count=100"
+```
+
+Maximum users allowed:
+
+```text
+100
+```
+
+---
+
+## Create URLs
+
+> Users must exist before URLs can be created.
+
+```http
+POST /v1/admin/seed/urls
+```
+
+Example
+
+```bash
+curl -X POST \
+"http://<EC2_PUBLIC_IP>:8000/v1/admin/seed/urls?count=1000"
+```
+
+Maximum URLs allowed:
+
+```text
+1000
+```
+
+---
+
+## Generate Clicks
+
+> URLs must exist before clicks can be generated.
+
+```http
+POST /v1/admin/seed/clicks
+```
+
+Example
+
+```bash
+curl -X POST \
+"http://<EC2_PUBLIC_IP>:8000/v1/admin/seed/clicks?count=1000"
+```
+
+Maximum clicks allowed:
+
+```text
+1000
+```
+
+---
+
+## Seed Everything
+
+Creates users, URLs, and click events in the correct order.
+
+```http
+POST /v1/admin/seed/all
+```
+
+Example
+
+```bash
+curl -X POST \
+"http://<EC2_PUBLIC_IP>:8000/v1/admin/seed/all"
+```
+
+Default execution:
+
+- 100 Users
+- 1000 URLs
+- 1000 Click Events
+
+The endpoint internally performs:
+
+```text
+Create Users
+      ↓
+Create URLs
+      ↓
+Generate Clicks
+```
+
+This is the recommended endpoint for populating a fresh environment.
+
+# Kafka UI
+
+Kafka UI provides a graphical interface for monitoring Kafka topics and consumers.
+
+Open:
+
+```text
+http://<EC2_PUBLIC_IP>:8080
+```
+
+You can:
+
+- View Topics
+- Browse Messages
+- Monitor Consumer Groups
+- Inspect Offsets
+- Verify Event Processing
+
+---
+
+# Verify Event Flow
+
+After seeding data:
+
+1. Open Swagger.
+2. Access any generated short URL.
+3. The application redirects immediately.
+4. A click event is published to Kafka.
+5. Analytics Consumer processes the event.
+6. Click count is updated asynchronously.
+
+Open Kafka UI to observe the messages in real time.
+
+---
+
+# Redis
+
+Redis is used as a cache for frequently accessed URLs.
+
+Benefits include:
+
+- Faster redirects
+- Reduced PostgreSQL queries
+- Improved application performance
+
+Redis runs automatically through Docker Compose.
+
+To inspect Redis logs:
+
+```bash
+docker compose logs redis
+```
+
+---
+
+# PostgreSQL
+
+PostgreSQL stores:
+
+- Users
+- Short URLs
+- Click Analytics
+- URL Metadata
+
+To connect directly:
+
+```bash
+docker exec -it postgres psql -U postgres
+```
+
+List databases:
+
+```sql
+\l
+```
+
+Connect to the application database:
+
+```sql
+\c url_shortener
+```
+
+List tables:
+
+```sql
+\dt
+```
+
+---
+
+# Health Verification Checklist
+
+After deployment verify the following:
+
+- Terraform completed successfully.
+- EC2 instance is reachable.
+- Docker containers are running.
+- Swagger UI loads.
+- Kafka UI loads.
+- User registration works.
+- Login returns JWT.
+- URL shortening works.
+- Redirect works.
+- Kafka receives click events.
+- Analytics consumer updates click statistics.
+- Redis cache is populated.
+- Seed APIs execute successfully.
+
+If all items pass, the deployment is complete.
+# REST API Overview
+
+The application exposes REST APIs for authentication, URL management, analytics, and administration.
+
+Interactive API documentation is available through Swagger.
+
+```
+http://<EC2_PUBLIC_IP>:8000/docs
+```
+
+OpenAPI Schema
+
+```
+http://<EC2_PUBLIC_IP>:8000/openapi.json
+```
+
+---
+
+# Authentication APIs
+
+## Register User
+
+Creates a new user account.
+
+**Endpoint**
+
+```http
+POST /v1/auth/register_user
+```
+
+Request
+
+```json
+{
+    "email": "john.doe@example.com",
+    "password": "StrongPassword123"
+}
+```
+
+Successful Response
+
+```json
+{
+    "message": "User registered successfully."
+}
+```
+
+---
+
+## Login
+
+Authenticates the user and returns a JWT access token.
+
+**Endpoint**
+
+```http
+POST /v1/auth/login-json
+```
+
+Request
+
+```json
+{
+    "email": "john.doe@example.com",
+    "password": "StrongPassword123"
+}
+```
+
+Response
+
+```json
+{
+    "access_token": "<jwt-token>",
+    "token_type": "bearer"
+}
+```
+
+---
+
+# URL APIs
+
+## Create Short URL
+
+Creates a shortened URL for an authenticated user.
+
+**Endpoint**
+
+```http
+POST /v1/urls
+```
+
+Headers
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
+Request
+
+```json
+{
+    "original_url": "https://www.google.com"
+}
+```
+
+Example Response
+
+```json
+{
+    "short_code": "Ab12CD",
+    "short_url": "http://<EC2_PUBLIC_IP>:8000/Ab12CD"
+}
+```
+
+---
+
+## Redirect
+
+Redirects the user to the original URL.
+
+**Endpoint**
+
+```http
+GET /{short_code}
+```
+
+Example
+
+```http
+GET /Ab12CD
+```
+
+Response
+
+```http
+HTTP/1.1 302 Found
+Location: https://www.google.com
+```
+
+During every redirect the application
+
+- Checks Redis cache
+- Falls back to PostgreSQL if needed
+- Updates Redis
+- Publishes a Kafka event
+- Redirects the user immediately
+
+---
+
+# Analytics APIs
+
+Retrieve analytics for a shortened URL.
+
+Example endpoint
+
+```http
+GET /v1/analytics/{short_code}
+```
+
+Typical response
+
+```json
+{
+    "short_code": "Ab12CD",
+    "total_clicks": 150
+}
+```
+
+---
+
+# Rate Limiting
+
+The application applies rate limiting to protect public APIs.
+
+Benefits
+
+- Prevents abuse
+- Prevents excessive URL creation
+- Protects backend services
+- Demonstrates production-ready API design
+
+---
+
+# Project Structure
+
+```
+url-shortener/
+│
+├── app/
+│   ├── core/
+│   ├── models/
+│   ├── routers/
+│   ├── schemas/
+│   ├── services/
+│   ├── utils/
+│
+├── images/
+│
+├── terraform/
+│
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+├── README.md
+│
+└── .env
+```
+
+---
+
+# Troubleshooting
+
+## Docker Permission Denied
+
+```text
+permission denied while trying to connect to Docker daemon
+```
+
+Solution
+
+```bash
+sudo usermod -aG docker ubuntu
+
+newgrp docker
+```
+
+Logout and login again if required.
+
+---
+
+## PostgreSQL Connection Timeout
+
+Verify
+
+- PostgreSQL container is running.
+- Security Group allows the required port.
+- Docker network is healthy.
+
+Useful commands
+
+```bash
+docker compose logs postgres
+
+docker ps
+```
+
+---
+
+## Kafka Issues
+
+Check Kafka logs.
+
+```bash
+docker compose logs kafka
+```
+
+Verify Kafka UI.
+
+```
+http://<EC2_PUBLIC_IP>:8080
+```
+
+Ensure topics are created.
+
+---
+
+## Redis Issues
+
+View Redis logs.
+
+```bash
+docker compose logs redis
+```
+
+Restart Redis.
+
+```bash
+docker compose restart redis
+```
+
+---
+
+## Application Not Starting
+
+View logs.
+
+```bash
+docker compose logs api
+```
+
+Rebuild containers.
+
+```bash
+docker compose up -d --build
+```
+
+---
+
+## Terraform Issues
+
+Reinitialize Terraform.
+
+```bash
+terraform init
+```
+
+View current infrastructure.
+
+```bash
+terraform state list
+```
+
+Destroy infrastructure.
+
+```bash
+terraform destroy
+```
+
+Provision again.
+
+```bash
+terraform apply
+```
+
+---
+
+# Useful Docker Commands
+
+Start all services
 
 ```bash
 docker compose up -d
 ```
 
-### Verify Containers
+Rebuild containers
+
+```bash
+docker compose up -d --build
+```
+
+Stop services
+
+```bash
+docker compose down
+```
+
+Restart services
+
+```bash
+docker compose restart
+```
+
+View logs
+
+```bash
+docker compose logs -f
+```
+
+List containers
+
+```bash
+docker ps
+```
+
+List images
+
+```bash
+docker images
+```
+
+---
+
+# Useful Terraform Commands
+
+Initialize
+
+```bash
+terraform init
+```
+
+Plan
+
+```bash
+terraform plan
+```
+
+Apply
+
+```bash
+terraform apply
+```
+
+Destroy
+
+```bash
+terraform destroy
+```
+
+Show Outputs
+
+```bash
+terraform output
+```
+
+---
+
+
+---
+
+# Learning Objectives
+
+This project demonstrates practical experience with
+
+- REST API Design
+- Authentication using JWT
+- FastAPI
+- PostgreSQL
+- Redis Caching
+- Apache Kafka
+- Event-Driven Architecture
+- Rate Limiting
+- Docker & Docker Compose
+- Infrastructure as Code using Terraform
+- AWS EC2 Deployment
+- Production-style Backend Design
+
+---
+
+# License
+
+MIT License
+
+Feel free to use this project for learning, experimentation, and personal development.
+# Deployment Checklist
+
+Use this checklist whenever deploying the project to a new environment.
+
+## Infrastructure
+
+- [ ] AWS credentials configured
+- [ ] Terraform initialized
+- [ ] Terraform plan reviewed
+- [ ] Terraform apply completed
+- [ ] EC2 instance created
+- [ ] Security Group configured
+- [ ] Elastic IP (if applicable) associated
+
+---
+
+## Application
+
+- [ ] Repository cloned
+- [ ] Environment variables configured
+- [ ] Docker installed
+- [ ] Docker Compose installed
+- [ ] Application started
+- [ ] All containers healthy
+
+---
+
+## Verification
+
+- [ ] Swagger UI accessible
+- [ ] Kafka UI accessible
+- [ ] PostgreSQL container running
+- [ ] Redis container running
+- [ ] Kafka container running
+
+---
+
+## Demo Data
+
+- [ ] Users seeded
+- [ ] URLs seeded
+- [ ] Clicks generated
+
+---
+
+## Functional Testing
+
+- [ ] Register user
+- [ ] Login
+- [ ] Create short URL
+- [ ] Redirect works
+- [ ] Click event published
+- [ ] Analytics updated
+
+Deployment is complete once every item above has been verified.
+
+---
+# Environment Variables
+
+The application relies on the following environment variables.
+
+| Variable | Description |
+|-----------|-------------|
+| DATABASE_URL | PostgreSQL connection string |
+| SECRET_KEY | JWT signing secret |
+| ACCESS_TOKEN_EXPIRE_MINUTES | JWT expiration time |
+| REDIS_HOST | Redis hostname |
+| REDIS_PORT | Redis port |
+| KAFKA_BOOTSTRAP_SERVERS | Kafka broker |
+| API_BASE_URL | Base URL used by Admin Seed APIs |
+
+Example
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/url_shortener
+
+SECRET_KEY=change-me
+
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
+API_BASE_URL=http://localhost:8000
+```
+
+---
+# Notes for Future Me
+
+If you're returning to this project after months or years, remember the following.
+
+### Infrastructure
+
+Infrastructure is provisioned using Terraform.
+
+```bash
+cd terraform
+
+terraform init
+
+terraform apply
+```
+
+---
+
+### Application
+
+Start everything using Docker Compose.
+
+```bash
+docker compose up -d --build
+```
+
+---
+
+### Demo Data
+
+Populate the database.
+
+```bash
+POST /v1/admin/seed/all
+```
+
+or
+
+```bash
+curl -X POST \
+"http://<HOST>:8000/v1/admin/seed/all"
+```
+
+---
+
+### Useful URLs
+
+Swagger
+
+```
+http://<HOST>:8000/docs
+```
+
+Kafka UI
+
+```
+http://<HOST>:8080
+```
+
+Application
+
+```
+http://<HOST>:8000
+```
+
+---
+
+### Common Issues
+
+Docker Permission
+
+```bash
+sudo usermod -aG docker ubuntu
+
+newgrp docker
+```
+
+---
+
+Container Status
 
 ```bash
 docker ps
@@ -118,238 +1198,40 @@ docker ps
 
 ---
 
----
-
-## Load Sample Data
-
-Once the application is running, you can populate it with sample users, Kafka topics, and shortened URLs using the provided seed script.
-
-> **Note**
->
-> The seed script must be executed from a machine that:
->
-> - Has network access to the application (for example, its IP address is allowed by the EC2 Security Group).
-> - Has Python and the `requests` package installed (or allows the script to create its virtual environment automatically).
-> - Can reach the application's API endpoint over HTTP.
-
-### Run the Seed Script
-
-For a local deployment:
+Application Logs
 
 ```bash
-python seed_test_data.py
+docker compose logs -f
 ```
 
-For a deployment on a remote host:
+---
+
+Terraform Outputs
 
 ```bash
-python seed_test_data.py --host <HOSTNAME>
+terraform output
 ```
 
-Example:
+---
+
+Destroy Everything
 
 ```bash
-python seed_test_data.py --host 54.123.45.67
-```
-
-The seed script automatically:
-
-- Creates the required Kafka topics.
-- Creates a test user (if one does not already exist).
-- Authenticates the user and retrieves a JWT access token.
-- Creates sample shortened URLs for testing.
-
-After the script completes successfully, you can immediately:
-
-- Test URL redirection.
-- Verify Kafka event publishing.
-- View click analytics.
-- Exercise the REST APIs using the generated test data.
-
-## Access Application
-
-API:
-
-```text
-http://HOSTNAME:8000
-```
-
-Swagger Documentation:
-
-```text
-http://HOSTNAME:8000/docs
-```
-
-OpenAPI Schema:
-
-```text
-http://HOSTNAME:8000/openapi.json
+terraform destroy
 ```
 
 ---
 
-## Kafka UI
+Rebuild Application
 
-Kafka UI provides a web-based interface for monitoring Kafka topics, messages, and consumers.
+```bash
+docker compose down
 
-Access Kafka UI:
-
-```text
-http://HOSTNAME:8080
-```
-
-Using Kafka UI, you can:
-
-- View all Kafka topics.
-- Inspect messages published to each topic.
-- Monitor consumer groups and offsets.
-- Verify that click events are being published successfully.
-- Observe asynchronous event processing in real time.
-
-### Verifying Event Flow
-
-After running the seed script and accessing one or more shortened URLs:
-
-1. Open Kafka UI.
-2. Navigate to the **Topics** page.
-3. Select one of the following topics:
-   - `analytics-consumer`
-   - `archival-consumer`
-   - `click-count-consumer`
-4. Browse the messages published by the application.
-5. Verify that the corresponding consumer groups are processing the events.
-
-This provides a visual way to observe the event-driven architecture powering the analytics pipeline.
----
-
-## Authentication
-
-### Register
-
-**POST** `/api/v1/auth/register`
-
-```json
-{
-  "username": "john_doe",
-  "email": "john@example.com",
-  "password": "StrongPassword123"
-}
-```
-
-### Login
-
-**POST** `/api/v1/auth/login`
-
-```json
-{
-  "email": "john@example.com",
-  "password": "StrongPassword123"
-}
-```
-
-Response:
-
-```json
-{
-  "access_token": "<jwt-token>",
-  "token_type": "bearer"
-}
+docker compose up -d --build
 ```
 
 ---
 
-## API Examples
+If the infrastructure deploys successfully, the containers are healthy, and the seed API completes successfully, the application should be fully operational.
 
-### Create Short URL
-
-**POST** `/api/v1/urls`
-
-```json
-{
-  "url": "https://www.example.com"
-}
-```
-
-Response:
-
-```json
-{
-  "short_code": "aBc123",
-  "short_url": "http://HOSTNAME:8000/aBc123"
-}
-```
-
----
-
-### Redirect
-
-**GET** `/{short_code}`
-
-```http
-GET /aBc123
-```
-
-Response:
-
-```http
-HTTP/1.1 302 Found
-Location: https://www.example.com
-```
-
----
-
-### Analytics
-
-**GET** `/api/v1/analytics/{short_code}`
-
-Response:
-
-```json
-{
-  "short_code": "aBc123",
-  "total_clicks": 42
-}
-```
-
----
-
-## Project Structure
-
-```text
-url-shortener/
-├── app/
-├── images/
-│   └── architecture.png
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-└── README.md
-```
-
----
-
-## Infrastructure
-
-Infrastructure provisioning and deployment automation are maintained in a separate Terraform repository.
-
-**Terraform Repository**
-
-```text
-https://github.com/GowravTata/url-shortener-infra.git
-```
-
-The infrastructure repository provisions AWS resources such as:
-
-- EC2 Instance
-- IAM Roles and Instance Profile
-- Security Groups
-- User Data Bootstrapping
-- Automated application deployment from GitHub
-
----
-
----
-
-## License
-
-MIT License
+Good luck!
