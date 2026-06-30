@@ -40,6 +40,7 @@ def reset_environment(db: Session):
 )
 
         db.execute(query)
+        db.commit()
 
         # -----------------------------------------------------
         # Recreate Kafka Topic
