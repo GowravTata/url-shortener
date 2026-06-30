@@ -13,7 +13,7 @@ variable "instance_type" {
 variable "instance_name" {
   description = "Name of the instance"
   type        = string
-  default     = "TestServer"
+  default     = "DevServer"
 }
 
 variable "repo_name" {
@@ -24,7 +24,7 @@ variable "repo_name" {
 variable "my_ip" {
   description = "IP Address of my laptop"
   type        = string
-  default     = ""
+  default     = "167.103.25.87"
 
 }
 

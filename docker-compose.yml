@@ -109,7 +109,7 @@ services:
       - postgres
 
   kafka-ui:
-    profiles: ["tools"]
+    profiles: ["kafka"]
     image: provectuslabs/kafka-ui:latest
     container_name: kafka_ui
     ports:
@@ -121,7 +121,7 @@ services:
       - kafka
 
   redisinsight:
-    profiles: ["tools"]
+    profiles: ["redisinsight"]
     image: redis/redisinsight:latest
     container_name: redisinsight
     restart: unless-stopped

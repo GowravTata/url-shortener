@@ -15,7 +15,7 @@ output "public_dns" {
 
 output "ssh_command" {
   description = "SSH command to connect to the instance"
-  value       = "ssh -i my-key ubuntu@${aws_instance.app_server.public_ip}"
+  value       = "ssh -i my-key ubuntu@${aws_instance.app_server.public_dns}"
 }
 
 output "application_url" {
@@ -28,7 +28,7 @@ output "security_group_id" {
   value       = aws_security_group.app_sg.id
 }
 
-output "iam_role_name" {
-  description = "IAM Role attached to EC2"
-  value       = aws_iam_role.ec2_code_commit_role.name
-}
+# output "iam_role_name" {
+#   description = "IAM Role attached to EC2"
+#   value       = aws_iam_role.ec2_code_commit_role.name
+# }
