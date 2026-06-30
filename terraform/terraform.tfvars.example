@@ -1,0 +1,11 @@
+region            = "ap-south-2"
+instance_name     = "url-shortener"
+instance_type     = "t3.medium"
+
+repo_name         = "url-shortener"
+
+my_ip             = "YOUR_PUBLIC_IP"
+github_username   = "GowravTata"
+application_ports = [
+  8000
+]
