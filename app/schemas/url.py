@@ -34,7 +34,7 @@ class ShortenRequest(BaseModel):
             "example": {
                 "original_url": "https://www.amazon.com",  # Optional
                 "custom_alias": "az",
-                "expiry": "2026-04-30T23:59:59",
+                "expiry": "2099-12-31T23:59:59",
             }
         }
     )
@@ -47,7 +47,7 @@ class PatchRequest(BaseModel):
     disable: Optional[bool] = None
     model_config = ConfigDict(
         json_schema_extra={
-            "example": {"expires_at": "2026-12-31T11:59:59", "disable": True}
+            "example": {"expires_at": "2099-12-31T11:59:59", "disable": True}
         }
     )
 
@@ -60,12 +60,12 @@ class BulkCreateRequest(BaseModel):
                 "urls": [
                     {
                         "custom_alias": "az",
-                        "expiry": "2026-12-31T23:59:59",
+                        "expiry": "2099-12-31T23:59:59",
                         "original_url": "https://www.amazon.com",
                     },
                     {
                         "custom_alias": "flip",
-                        "expiry": "2026-12-31T23:59:59",
+                        "expiry": "2099-12-31T23:59:59",
                         "original_url": "https://www.twitter.com",
                     },
                 ]
@@ -94,5 +94,5 @@ class BulkPatchRequest(BaseModel):
     short_codes: List[str] = Field(examples=[["az", "flip", "intel"]])
     disable: bool | None = Field(default=None, examples=[True])
     expires_at: datetime | None = Field(
-        default=None, examples=["2026-05-30T00:00:00"]
+        default=None, examples=["2099-12-31T11:59:59"]
     )

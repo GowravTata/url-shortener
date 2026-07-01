@@ -355,6 +355,83 @@ If Swagger loads successfully, the application is running correctly.
 
 ---
 
+## Kafka Verification
+
+Use the following commands to verify that Kafka is running and that your application is publishing events successfully.
+
+### Verify Kafka container
+
+Ensure the Kafka container is running.
+
+```bash
+docker ps
+```
+
+Expected output should include:
+
+```text
+url_shortener_kafka
+```
+
+---
+
+### List Kafka topics
+
+Verify that the expected Kafka topics have been created.
+
+```bash
+docker exec -it url_shortener_kafka \
+/opt/kafka/bin/kafka-topics.sh \
+--bootstrap-server localhost:9092 \
+--list
+```
+
+Expected output:
+
+```text
+redirect_queue
+```
+
+---
+
+### Describe a topic
+
+View topic details such as partitions and replication factor.
+
+```bash
+docker exec -it url_shortener_kafka 
+/opt/kafka/bin/kafka-topics.sh \
+--bootstrap-server localhost:9092 \
+--describe \
+--topic redirect_queue
+```
+
+---
+
+### Consume messages
+
+Monitor messages published by the application.
+
+```bash
+docker exec -it url_shortener_kafka \
+/opt/kafka/bin/kafka-console-consumer.sh \
+--bootstrap-server localhost:9092 \
+--topic redirect_queue \
+--from-beginning
+```
+
+Keep this terminal open, then access a shortened URL. New events should appear immediately, confirming that Kafka is receiving messages from the application.
+
+---
+
+### Check application logs
+
+If events are not appearing in Kafka, inspect the application logs for producer errors.
+
+```bash
+docker logs -f url_shortener_api
+```
+
 # Seed Demo Data
 
 The project includes Admin Seed APIs for generating realistic demo data.
@@ -469,26 +546,6 @@ Generate Clicks
 
 This is the recommended endpoint for populating a fresh environment.
 
-# Kafka UI
-
-Kafka UI provides a graphical interface for monitoring Kafka topics and consumers.
-
-Open:
-
-```text
-http://<EC2_PUBLIC_IP>:8080
-```
-
-You can:
-
-- View Topics
-- Browse Messages
-- Monitor Consumer Groups
-- Inspect Offsets
-- Verify Event Processing
-
----
-
 # Verify Event Flow
 
 After seeding data:
@@ -545,12 +602,6 @@ List databases:
 \l
 ```
 
-Connect to the application database:
-
-```sql
-\c url_shortener
-```
-
 List tables:
 
 ```sql
@@ -567,7 +618,6 @@ After deployment verify the following:
 - EC2 instance is reachable.
 - Docker containers are running.
 - Swagger UI loads.
-- Kafka UI loads.
 - User registration works.
 - Login returns JWT.
 - URL shortening works.
@@ -1041,7 +1091,6 @@ Use this checklist whenever deploying the project to a new environment.
 ## Verification
 
 - [ ] Swagger UI accessible
-- [ ] Kafka UI accessible
 - [ ] PostgreSQL container running
 - [ ] Redis container running
 - [ ] Kafka container running
