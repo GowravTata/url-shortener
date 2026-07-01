@@ -43,6 +43,7 @@ def shorten_url(
     expiry: str | datetime | None,
     user_id: int,
     db: Session,
+    base_url: str9
 ) -> dict:
     """
     Validate and shorten a URL, storing it in the database and caching it in Redis.
@@ -94,6 +95,7 @@ def shorten_url(
         return {
             "message": URL_SHORTENED_SUCCESSFULLY,
             "short_code": short_code,
+            "short_url": f"{base_url}/{short_code}"
         }
 
     except IntegrityError as e:

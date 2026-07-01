@@ -1,6 +1,6 @@
 from typing import Dict, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from app.core.config import CREATE, DELETE, INFO, IP, PATCH, USER, USERINFO
@@ -30,18 +30,21 @@ logger = AppLogger().get_logger()
     dependencies=[rate_limit_dependency(scope=CREATE, identifier_type=USER)],
 )
 async def shorten(
+    request: Request,
     payload: ShortenRequest,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ) -> Dict:
     """Accept a long URL and return a shortened version with an optional custom alias and expiry."""
     logger.info(f"Shorten request for user_id={user_id}")
+    base_url = str(request.base_url).rstrip("/")
     return shorten_url(
         original_url=payload.original_url,
         custom_alias=payload.custom_alias,
         expiry=payload.expiry,
         user_id=user_id,
         db=db,
+        base_url=base_url
     )
 
 

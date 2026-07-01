@@ -50,7 +50,11 @@ The application follows an event-driven architecture.
 - Kafka publishes click events asynchronously.
 - Analytics consumers process events without impacting redirect latency.
 
-![Architecture](images/architecture.png)
+# Infrastrcuture Architecture 
+![InfrastrcutureArchitecture](images/infra_architecture.png)
+
+# System Architecture 
+![SystemArchitecture](images/architecture.png)
 
 ---
 
@@ -275,19 +279,6 @@ For production environments, replace this with a least-privilege IAM policy.
 
 ---
 
-
-The application deployment is covered in the next section.
-# Application Deployment
-
-After connecting to the EC2 instance, clone the application repository.
-
-```bash
-git clone https://github.com/<your-username>/url-shortener.git
-
-cd url-shortener
-```
-
----
 # Verify Deployment
 
 Terraform deploys the application automatically using the EC2 bootstrap script.
@@ -301,8 +292,6 @@ Verify that the application is available by opening:
 | Application | http://<EC2_PUBLIC_IP>:8000 |
 | Swagger UI | http://<EC2_PUBLIC_IP>:8000/docs |
 | OpenAPI | http://<EC2_PUBLIC_IP>:8000/openapi.json |
-| Kafka UI | http://<EC2_PUBLIC_IP>:8080 |
-| PgAdmin (if enabled) | http://<EC2_PUBLIC_IP>:5050 |
 
 If these pages load successfully, the deployment has completed successfully.
 
@@ -547,7 +536,7 @@ PostgreSQL stores:
 To connect directly:
 
 ```bash
-docker exec -it postgres psql -U postgres
+docker exec -it url_shortener_postgres psql -U postgres
 ```
 
 List databases:
