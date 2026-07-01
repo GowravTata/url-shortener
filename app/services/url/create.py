@@ -43,7 +43,7 @@ def shorten_url(
     expiry: str | datetime | None,
     user_id: int,
     db: Session,
-    base_url: str9
+    base_url: str
 ) -> dict:
     """
     Validate and shorten a URL, storing it in the database and caching it in Redis.
